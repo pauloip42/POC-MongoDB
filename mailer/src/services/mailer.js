@@ -1,6 +1,7 @@
 "use strict";
 require('dotenv').config();
 const nodemailer = require("nodemailer");
+const MailRepository = require("../repository/mail_repository");
 
 const express = require('express');
 
@@ -49,8 +50,19 @@ async function sendEmail(email, message) {
   // Preview only available when sending through an Ethereal account
   console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
   // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-//   console.log(info)
-    return (nodemailer.getTestMessageUrl(info));
+  //   console.log(info)
+
+  const time = Date.now();
+  
+  const data = {
+    email: email,
+    message: message,
+    dateTime: time
+  }
+
+  MailRepository.insertEmail(data);
+
+  return (nodemailer.getTestMessageUrl(info));
 }
 
 // sendEmail().catch(console.error);
