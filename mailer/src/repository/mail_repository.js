@@ -13,14 +13,19 @@ const MailRepository = {
         return result;
     },
 
-    async updateOneEmail(id) {
-        const obId = mongoose.Types.ObjectId(id);
+    async updateOneEmail(data) {
+        const obId = mongoose.Types.ObjectId(data.id);
         const result = await MailModel.findOneAndUpdate(
             {_id: obId}, 
-            {email: 'novoemail@email.com'}, 
+            {email: data.email}, 
             {new: true}
         );
-        
+        return result;
+    },
+
+    async deleteOneEmail(id) {
+        const obId = mongoose.Types.ObjectId(id);
+        const result = await MailModel.findOneAndRemove({_id: obId});
         return result;
     }
 }

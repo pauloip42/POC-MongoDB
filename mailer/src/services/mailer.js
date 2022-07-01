@@ -56,10 +56,17 @@ const MailService = {
     return result;
   },
 
-  async updateEmail(id) {
-    const result = await MailRepository.updateOneEmail(id);
+  async updateEmail(data) {
+    const result = await MailRepository.updateOneEmail(data);
+    return result;
+  },
+
+  async deleteEmail(id) {
+    const result = await MailRepository.deleteOneEmail(id);
     return result;
   }
+
+
 }
 
 
