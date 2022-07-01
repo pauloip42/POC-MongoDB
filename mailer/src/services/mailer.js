@@ -3,68 +3,66 @@ require('dotenv').config();
 const nodemailer = require("nodemailer");
 const MailRepository = require("../repository/mail_repository");
 
-const express = require('express');
+const MailService = {
+    // async..await is not allowed in global scope, must use a wrapper
+  async sendEmail(email, message) {
+    // Generate test SMTP service account from ethereal.email
+    // Only needed if you don't have a real mail account for testing
+    let testAccount = await nodemailer.createTestAccount();
 
-const router = express.Router();
+    // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: testAccount.user, // generated ethereal user
+        pass: testAccount.pass, // generated ethereal password
+      },
+    });
 
-router.post('/', async (req, res) => {
-    const email = req.body.email;
-    const message = req.body.message;
-    console.log(email)
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+      from: `"Fred Foo 👻" <${process.env.EMAIL}>`, // sender address
+      to: `${email}`, // list of receivers
+      subject: "Hello ✔", // Subject line
+      text: `${message}`, // plain text body
+      html: "<b>Hello world?</b>", // html body
+    });
 
-    const response = await sendEmail(email, message);
+  //   console.log("Message sent: %s", info.messageId);
+    // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 
-    res.status(200);
-    res.json(response);
-});
+    // Preview only available when sending through an Ethereal account
+    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+    //   console.log(info)
 
-// async..await is not allowed in global scope, must use a wrapper
-async function sendEmail(email, message) {
-  // Generate test SMTP service account from ethereal.email
-  // Only needed if you don't have a real mail account for testing
-  let testAccount = await nodemailer.createTestAccount();
+    const time = Date.now();
 
-  // create reusable transporter object using the default SMTP transport
-  let transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: testAccount.user, // generated ethereal user
-      pass: testAccount.pass, // generated ethereal password
-    },
-  });
+    const data = {
+      email: email,
+      message: message,
+      dateTime: time
+    }
 
-  // send mail with defined transport object
-  let info = await transporter.sendMail({
-    from: `"Fred Foo 👻" <${process.env.EMAIL}>`, // sender address
-    to: `${email}`, // list of receivers
-    subject: "Hello ✔", // Subject line
-    text: `${message}`, // plain text body
-    html: "<b>Hello world?</b>", // html body
-  });
+    await MailRepository.insertEmail(data);
 
-//   console.log("Message sent: %s", info.messageId);
-  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+    return (nodemailer.getTestMessageUrl(info));
+  },
 
-  // Preview only available when sending through an Ethereal account
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-  //   console.log(info)
+  async getEmailInfo(email) {
+    const result = await MailRepository.findOneEmail({email});
+    return result;
+  },
 
-  const time = Date.now();
-  
-  const data = {
-    email: email,
-    message: message,
-    dateTime: time
+  async updateEmail(id) {
+    const result = await MailRepository.updateOneEmail(id);
+    return result;
   }
-
-  MailRepository.insertEmail(data);
-
-  return (nodemailer.getTestMessageUrl(info));
 }
 
-// sendEmail().catch(console.error);
 
-module.exports = router;
+module.exports = {
+  MailService
+};

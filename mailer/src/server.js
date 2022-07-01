@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const email = require('./services/mailer');
+const router = require('./routes/mail');
 const cors = require('cors');
 
 const app = express();
@@ -15,6 +15,6 @@ app.use(express.json());
 
 const port = process.env.PORT || 4000;
 
-app.use('/', email);
+app.use('/', router);
 
 app.listen(port, () => {console.log('Started!')});
